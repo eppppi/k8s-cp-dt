@@ -11,6 +11,10 @@ service MergelogService {
     rpc PostMergelogs (MergelogRequest) returns (google.protobuf.Empty);
     rpc GetAllMergelogs (google.protobuf.Empty) returns (Mergelogs);
     rpc GetRelevantMergelogs (CPID) returns (Mergelogs);
+
+    rpc PostSpans (PostSpansRequest) returns (google.protobuf.Empty);
+    rpc GetAllSpans (google.protobuf.Empty) returns (GetAllSpansResponse);
+    rpc GetRelevantSpans (CPID) returns (GetRelevantSpansResponse);
 }
 
 message MergelogRequest {
@@ -38,4 +42,25 @@ enum CauseType {
     CAUSE_TYPE_UNSPECIFIED = 0;
     CAUSE_TYPE_NEW_CHANGE = 1;
     CAUSE_TYPE_MERGE = 2;
+}
+
+message PostSpansRequest {
+    repeated Span spans = 1;
+}
+
+message Span {
+    CPID cpid = 1;
+    google.protobuf.Timestamp start_time = 2;
+    google.protobuf.Timestamp end_time = 3;
+    string service = 4;
+    string object_kind = 5;
+    string object_name = 6;
+}
+
+message GetAllSpansResponse {
+    repeated Span spans = 1;
+}
+
+message GetRelevantSpansResponse {
+    repeated Span spans = 1;
 }
