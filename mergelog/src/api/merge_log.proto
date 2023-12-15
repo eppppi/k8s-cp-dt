@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option go_package = "pkg/grpc";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+package k8scpdt.mergelog.v1;
+
+service MergelogService {
+    rpc PostMergelogs (MergelogRequest) returns (google.protobuf.Empty);
+    rpc GetAllMergelogs (google.protobuf.Empty) returns (Mergelogs);
+    rpc GetRelevantMergelogs (CPID) returns (Mergelogs);
+}
+
+message MergelogRequest {
+    repeated Mergelog mergelogs = 1;
+}
+
+message Mergelogs {
+    repeated Mergelog mergelogs = 1;
+}
+
+message Mergelog {
+    CPID new_cpid = 1;
+    repeated CPID source_cpids = 2;
+    google.protobuf.Timestamp time = 3;
+    CauseType cause_type = 4;
+    string cause_message = 5;
+    string by = 6;
+}
+
+message CPID {
+    string cpid = 1;
+}
+
+enum CauseType {
+    CAUSE_TYPE_UNSPECIFIED = 0;
+    CAUSE_TYPE_NEW_CHANGE = 1;
+    CAUSE_TYPE_MERGE = 2;
+}
