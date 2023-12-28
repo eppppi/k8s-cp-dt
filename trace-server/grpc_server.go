@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	// "fmt"
+	"log"
 	"sync"
 
 	mergelogpb "github.com/eppppi/k8s-cp-dt/mergelog/src/pkg/grpc"
@@ -55,6 +55,7 @@ func (ml *spanListStruct) getAll() []*mergelogpb.Span {
 func (s *traceServer) PostMergelogs(ctx context.Context, req *mergelogpb.MergelogRequest) (*emptypb.Empty, error) {
 	incomingMergelogs := req.GetMergelogs()
 	mergelogList.append(incomingMergelogs)
+	log.Println("mergelog received")
 	return &emptypb.Empty{}, nil
 }
 
@@ -73,6 +74,7 @@ func (s *traceServer) GetRelevantMergelogs(ctx context.Context, req *mergelogpb.
 func (s *traceServer) PostSpans(ctx context.Context, req *mergelogpb.PostSpansRequest) (*emptypb.Empty, error) {
 	incomingSpans := req.GetSpans()
 	spanList.append(incomingSpans)
+	log.Println("span received")
 	return &emptypb.Empty{}, nil
 }
 

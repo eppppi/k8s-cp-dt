@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>trace-server</title>
+    </head>
+<body>
+    <h2>This server serves the following endpoints.</h2>
+    {{ range . }}
+        <p><a href="{{- . }}">{{- . }}</a></p>
+    {{ end }}
+</body>
+</html>

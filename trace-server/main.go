@@ -19,6 +19,7 @@ const (
 )
 
 func main() {
+	// ------- gRPC server -------
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", GRPC_PORT))
 	if err != nil {
 		panic(err)
@@ -37,6 +38,7 @@ func main() {
 
 	// ------- web server -------
 	http.HandleFunc("/", rootHandler)
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 	http.HandleFunc("/get-all-mergelogs", getAllMergelogsHandler)
 	http.HandleFunc("/get-all-mergelogs-image", getAllMergelogsImageHandler)
 	http.HandleFunc("/get-relevant-mergelogs", getRelevantMergelogsHandler)

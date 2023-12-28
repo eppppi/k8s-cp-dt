@@ -55,6 +55,9 @@ message Span {
     string service = 4;
     string object_kind = 5;
     string object_name = 6;
+    string message = 7;
+    string span_id = 8;
+    string parent_id = 9;
 }
 
 message GetAllSpansResponse {

@@ -19,8 +19,7 @@ import (
 var getAllMergelogsCmd = &cobra.Command{
 	Use:   "getAllMergelogs",
 	Short: "get all mergelogs",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:`,
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		getAllMergelogs()
 	},
@@ -50,6 +49,9 @@ func getAllMergelogs() {
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		fmt.Println(res.GetMergelogs())
+		mergelogs := res.GetMergelogs()
+		for _, mergelog := range mergelogs {
+			fmt.Println(mergelog.String())
+		}
 	}
 }

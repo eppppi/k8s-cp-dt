@@ -11,22 +11,28 @@ import (
 )
 
 func rootHandler(w http.ResponseWriter, _ *http.Request) {
-	tmp := `
-	<!DOCTYPE html>
-	<html>
-	<head>
-		<meta charset="UTF-8">
-		<title>trace-server</title>
-		</head>
-	<body>
-		<h2>This server serves the following endpoints.</h2>
-		{{ range . }}
-			<p><a href="{{- . }}">{{- . }}</a></p>
-		{{ end }}
-	</body>
-	</html>`
-	t := template.Must(template.New("a").Parse(tmp))
+	// tmp := `
+	// <!DOCTYPE html>
+	// <html>
+	// <head>
+	// 	<meta charset="UTF-8">
+	// 	<title>trace-server</title>
+	// 	</head>
+	// <body>
+	// 	<h2>This server serves the following endpoints.</h2>
+	// 	{{ range . }}
+	// 		<p><a href="{{- . }}">{{- . }}</a></p>
+	// 	{{ end }}
+	// </body>
+	// </html>`
+	// t := template.Must(template.New("root").Parse(tmp))
+	t, err := template.ParseFiles("root/index.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	sliceData := []string{
+		"/assets",
 		"/get-all-mergelogs",
 		"/get-all-mergelogs-image",
 		"/get-relevant-mergelogs",
@@ -52,7 +58,7 @@ func getAllMergelogsHandler(w http.ResponseWriter, _ *http.Request) {
 		</ul>
 	</body>
 	</html>`
-	t := template.Must(template.New("a").Parse(tmp))
+	t := template.Must(template.New("getAllMergelogs").Parse(tmp))
 	t.Execute(w, mergelogList.getAll())
 }
 
@@ -66,20 +72,25 @@ func getAllMergelogsImageHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	// return the image
-	tmp := `
-	<!DOCTYPE html>
-	<html>
-	<head>
-		<meta charset="UTF-8">
-		<title>trace-server</title>
-		</head>
-	<body>
-		<h2>All Mergelogs Image</h2>
-		<img src="{{ . }}" alt="graph image">
-		<img src="generated-img/graph-2482164804.png" alt="graph image2">
-	</body>
-	</html>`
-	t := template.Must(template.New("a").Parse(tmp))
+	// tmp := `
+	// <!DOCTYPE html>
+	// <html>
+	// <head>
+	// 	<meta charset="UTF-8">
+	// 	<title>trace-server</title>
+	// 	</head>
+	// <body>
+	// 	<h2>All Mergelogs Image</h2>
+	// 	<img src="https://www.pokemon.co.jp/img/logo.png" alt="">
+	// 	<img src="{{ . }}" alt="graph image">
+	// 	<img src="../generated-img/graph-2667192793.png" alt="graph image2">
+	// </body>
+	// </html>`
+	// t := template.Must(template.New("getAllMergelogsImage").Parse(tmp))
+	t, err := template.ParseFiles("root/template/getAllMergelogsImage.html")
+	if err != nil {
+		log.Fatal(err)
+	}
 	t.Execute(w, imagePath)
 	fmt.Println(imagePath)
 }
