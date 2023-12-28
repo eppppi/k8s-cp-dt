@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"google.golang.org/grpc"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
 	mergelogpb "github.com/eppppi/k8s-cp-dt/mergelog/src/pkg/grpc"
 	"google.golang.org/grpc/reflection"
@@ -43,20 +45,26 @@ func main() {
 	http.HandleFunc("/get-all-mergelogs-image", getAllMergelogsImageHandler)
 	http.HandleFunc("/get-relevant-mergelogs", getRelevantMergelogsHandler)
 	http.HandleFunc("/get-relevant-mergelogs-image", getRelevantMergelogsImageHandler)
+	http.HandleFunc("/try-canvas", tryCanvasHandler)
 
 	// start web server
+	webServer := &http.Server{
+		Addr: fmt.Sprintf(":%d", WEB_PORT),
+	}
 	go func() {
 		log.Printf("start web server port: %v", WEB_PORT)
-		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", WEB_PORT), nil))
+		log.Println(webServer.ListenAndServe())
 	}()
 
 	// graceful shutdown when Ctrl+C
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
+
 	log.Println("stopping gRPC server...")
 	s.GracefulStop()
 	log.Println("stopping web server...")
-	// TODO: stop web server gracefully
-
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	webServer.Shutdown(ctx)
 }

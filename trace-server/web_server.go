@@ -63,6 +63,8 @@ func generateGraphImage() (string, error) {
 		}
 		g.Close()
 	}()
+
+	// TODO: generate graph from mergelogList
 	n, err := graph.CreateNode("n")
 	if err != nil {
 		log.Fatal(err)
@@ -94,4 +96,13 @@ func getRelevantMergelogsHandler(w http.ResponseWriter, req *http.Request) {
 // TODO: implement
 func getRelevantMergelogsImageHandler(w http.ResponseWriter, req *http.Request) {
 
+}
+
+// TODO: implement
+func tryCanvasHandler(w http.ResponseWriter, _ *http.Request) {
+	t, err := template.ParseFiles("root/template/tryCanvas.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+	t.Execute(w, nil)
 }
