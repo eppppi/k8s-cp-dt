@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os"
+	"time"
 
 	"github.com/goccy/go-graphviz"
 )
@@ -77,17 +77,13 @@ func generateGraphImage() (string, error) {
 	}
 	e.SetLabel("e")
 
-	// save to temporary file
-	tmpFile, err := os.CreateTemp("", "graph-*.png")
-	if err != nil {
-		log.Println(err)
-		return "", err
-	}
-	if err := g.RenderFilename(graph, graphviz.PNG, tmpFile.Name()); err != nil {
+	now := time.Now().UTC()
+	imagePath := fmt.Sprintf("assets/generated-img/%s.png", now.Format("20060102-150405"))
+	if err := g.RenderFilename(graph, graphviz.PNG, imagePath); err != nil {
 		return "", err
 	}
 
-	return tmpFile.Name(), nil
+	return imagePath, nil
 }
 
 // TODO: implement
