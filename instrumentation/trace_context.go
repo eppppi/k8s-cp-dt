@@ -139,8 +139,8 @@ func GetTraceContext(objInterface interface{}) *TraceContext {
 		}
 		return &traceCtxs
 	} else {
-		log.Println("no trace context in this object")
-		return nil
+		log.Println("no trace context in this object, creating new trace context")
+		return &TraceContext{}
 	}
 }
 
