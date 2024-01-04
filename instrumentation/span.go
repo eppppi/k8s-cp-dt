@@ -89,6 +89,7 @@ func (s *Span) End() {
 
 // GenerateAndSendMergelog generates a mergelog and push it to channel
 func GenerateAndSendMergelog(newCpid string, sourceCpids []string, causeMsg, by string) {
+	log.Panicln("GenerateAndSendMergelog() started")
 	srcCpids := make([]*mergelogpb.CPID, 0)
 	for _, cpid := range sourceCpids {
 		srcCpids = append(srcCpids, &mergelogpb.CPID{Cpid: cpid})
@@ -131,7 +132,7 @@ func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogp
 		grpc.WithBlock(),
 	)
 	if err != nil {
-		log.Fatal("Connection failed.")
+		log.Println("Connection failed:", err)
 		return
 	} else {
 		log.Println("Connection succeeded.")
