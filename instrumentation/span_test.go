@@ -11,7 +11,7 @@ func TestStart(t *testing.T) {
 	// init sender
 	done := make(chan struct{})
 	defer close(done)
-	InitSender(done)
+	InitSender(done, "localhost:10039")
 
 	type args struct {
 		ctx     context.Context
@@ -57,7 +57,7 @@ func TestGenerateAndSendMergelog(t *testing.T) {
 	// init sender
 	done := make(chan struct{})
 	defer close(done)
-	InitSender(done)
+	InitSender(done, "localhost:10039")
 
 	type args struct {
 		newCpid     string

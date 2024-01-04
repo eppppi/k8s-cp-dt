@@ -17,8 +17,6 @@ type contextKey string
 
 const (
 	KOC_PARENTID_KEY contextKey = "eppppi.github.io/koc-parentid"
-	// TODO: get trace server's endpoint form from env var
-	TRACE_SERVER_ENDPOINT = "localhost:10039"
 )
 
 func GetParentId(ctx context.Context) string {
@@ -33,17 +31,6 @@ func SetParentId(ctx context.Context, parentId string) context.Context {
 	return context.WithValue(ctx, KOC_PARENTID_KEY, parentId)
 }
 
-// // implement
-// type Tracer struct {
-// 	service string
-// }
-
-// func NewInitTracer(endpoint, svcName string) *Tracer {
-// 	return &Tracer{
-// 		service: svcName,
-// 	}
-// }
-
 var (
 	spanCh     chan *mergelogpb.Span
 	mergelogCh chan *mergelogpb.Mergelog
@@ -53,10 +40,11 @@ const (
 	CHANNEL_SIZE = 100
 )
 
-func InitSender(doneCh <-chan struct{}) {
+func InitSender(doneCh <-chan struct{}, endpoint string) error {
 	spanCh = make(chan *mergelogpb.Span, CHANNEL_SIZE)
 	mergelogCh = make(chan *mergelogpb.Mergelog, CHANNEL_SIZE)
-	go runSender(doneCh, spanCh, mergelogCh)
+	go runSender(doneCh, endpoint, spanCh, mergelogCh)
+	return nil
 }
 
 // Span is a span that is to be converted to the Span struct of protobuf
@@ -132,11 +120,11 @@ func (s *Span) ToProtoSpan() *mergelogpb.Span {
 // RunSender runs a sender.
 // This func is intended to be called as a goroutine.
 // ctx is a context that is used to stop this func.
-func runSender(doneCh <-chan struct{}, spanCh <-chan *mergelogpb.Span, mergelogCh <-chan *mergelogpb.Mergelog) {
+func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogpb.Span, mergelogCh <-chan *mergelogpb.Mergelog) {
 	fmt.Println("runSender() started")
 	// TODO(improve): 毎回送信するのではなく、一定時間ごとに送信するようにする
 	conn, err := grpc.Dial(
-		TRACE_SERVER_ENDPOINT,
+		endpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
 	)
