@@ -92,7 +92,7 @@ func (s *Span) End() {
 
 // GenerateAndSendMergelog generates a mergelog and push it to channel
 func GenerateAndSendMergelog(newCpid string, sourceCpids []string, causeMsg, by string) {
-	log.Panicln("GenerateAndSendMergelog() started")
+	log.Println("GenerateAndSendMergelog() started")
 	srcCpids := make([]*mergelogpb.CPID, 0)
 	for _, cpid := range sourceCpids {
 		srcCpids = append(srcCpids, &mergelogpb.CPID{Cpid: cpid})
