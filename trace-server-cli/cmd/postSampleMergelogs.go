@@ -21,16 +21,17 @@ var postSampleMergelogsCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		postSampleMergelogs()
+		postSampleMergelogs(cmd)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(postSampleMergelogsCmd)
+	postSampleMergelogsCmd.Flags().String("endpoint", "localhost:10039", "endpoint of trace-server")
 }
 
-func postSampleMergelogs() {
-	address := "localhost:10039"
+func postSampleMergelogs(cmd *cobra.Command) {
+	address := cmd.Flag("endpoint").Value.String()
 	conn, err := grpc.Dial(
 		address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
