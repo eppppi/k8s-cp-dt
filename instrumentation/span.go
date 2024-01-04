@@ -99,6 +99,8 @@ func GenerateAndSendMergelog(newCpid string, sourceCpids []string, causeMsg, by 
 	mergelog := &mergelogpb.Mergelog{
 		NewCpid:      &mergelogpb.CPID{Cpid: newCpid},
 		SourceCpids:  srcCpids,
+		Time:         timestamppb.New(time.Now()),
+		CauseType:    mergelogpb.CauseType_CAUSE_TYPE_NEW_CHANGE,
 		CauseMessage: causeMsg,
 		By:           by,
 	}
@@ -151,7 +153,6 @@ func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogp
 			log.Println("finishing sender")
 			return
 		case span := <-spanCh:
-			fmt.Println("span received in runSender()")
 			req := &mergelogpb.PostSpansRequest{
 				Spans: []*mergelogpb.Span{span},
 			}
@@ -162,7 +163,6 @@ func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogp
 				log.Println("span sent")
 			}
 		case mergelog := <-mergelogCh:
-			fmt.Println("mergelog received in runSender()")
 			req := &mergelogpb.MergelogRequest{
 				Mergelogs: []*mergelogpb.Mergelog{mergelog},
 			}
