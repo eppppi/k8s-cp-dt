@@ -122,8 +122,10 @@ func (s *Span) ToProtoSpan() *mergelogpb.Span {
 // ctx is a context that is used to stop this func.
 func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogpb.Span, mergelogCh <-chan *mergelogpb.Mergelog) {
 	fmt.Println("runSender() started")
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	// TODO(improve): 毎回送信するのではなく、一定時間ごとに送信するようにする
-	conn, err := grpc.Dial(
+	conn, err := grpc.DialContext(
+		ctx,
 		endpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
@@ -133,6 +135,7 @@ func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogp
 		return
 	} else {
 		log.Println("Connection succeeded.")
+		fmt.Println("Connection succeeded.")
 	}
 	defer conn.Close()
 	client := mergelogpb.NewMergelogServiceClient(conn)
