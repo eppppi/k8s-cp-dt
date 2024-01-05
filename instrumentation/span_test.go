@@ -9,9 +9,9 @@ import (
 
 func TestStart(t *testing.T) {
 	// init sender
-	done := make(chan struct{})
-	defer close(done)
-	InitSender(done, "localhost:10039")
+	setupDoneCh, cancel := InitSender("localhost:10039")
+	<-setupDoneCh
+	defer cancel()
 
 	type args struct {
 		ctx     context.Context
@@ -55,9 +55,9 @@ func TestStart(t *testing.T) {
 
 func TestGenerateAndSendMergelog(t *testing.T) {
 	// init sender
-	done := make(chan struct{})
-	defer close(done)
-	InitSender(done, "localhost:10039")
+	setupDoneCh, cancel := InitSender("localhost:10039")
+	<-setupDoneCh
+	defer cancel()
 
 	type args struct {
 		newCpid     string

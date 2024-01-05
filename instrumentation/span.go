@@ -40,14 +40,21 @@ const (
 	CHANNEL_SIZE = 100
 )
 
-func InitSender(doneCh <-chan struct{}, endpoint string) error {
+// InitSender initializes a sender (gRPC client).
+// If wait is true, this func waits until setup is done.
+func InitSender(endpoint string) (<-chan struct{}, func()) {
+	doneCh := make(chan struct{})
 	spanCh = make(chan *mergelogpb.Span, CHANNEL_SIZE)
 	mergelogCh = make(chan *mergelogpb.Mergelog, CHANNEL_SIZE)
 	setupDoneCh := make(chan struct{})
-	go runSender(doneCh, endpoint, spanCh, mergelogCh, setupDoneCh)
-	// wait until setup is done
-	<-setupDoneCh
-	return nil
+	finishCh := make(chan struct{})
+	go runSender(doneCh, endpoint, spanCh, mergelogCh, setupDoneCh, finishCh)
+
+	return setupDoneCh, func() {
+		doneCh <- struct{}{}
+		// wait until sender is shutdown
+		<-finishCh
+	}
 }
 
 // Span is a span that is to be converted to the Span struct of protobuf
@@ -125,7 +132,7 @@ func (s *Span) ToProtoSpan() *mergelogpb.Span {
 // RunSender runs a sender.
 // This func is intended to be called as a goroutine.
 // ctx is a context that is used to stop this func.
-func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogpb.Span, mergelogCh <-chan *mergelogpb.Mergelog, setupDoneCh chan<- struct{}) {
+func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogpb.Span, mergelogCh <-chan *mergelogpb.Mergelog, setupDoneCh chan<- struct{}, finishCh chan<- struct{}) {
 	log.Println("runSender() started")
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	// TODO(improve): 毎回送信するのではなく、一定時間ごとに送信するようにする
@@ -151,6 +158,7 @@ func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogp
 		case <-doneCh:
 			// TODO: gracefull shutdown (wait until all channels are empty)
 			log.Println("finishing sender")
+			finishCh <- struct{}{}
 			return
 		case span := <-spanCh:
 			req := &mergelogpb.PostSpansRequest{
@@ -174,4 +182,5 @@ func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogp
 			}
 		}
 	}
+	finishCh <- struct{}{}
 }
