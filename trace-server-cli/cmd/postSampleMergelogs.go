@@ -27,7 +27,6 @@ var postSampleMergelogsCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(postSampleMergelogsCmd)
-	postSampleMergelogsCmd.Flags().String("endpoint", "localhost:10039", "endpoint of trace-server")
 }
 
 func postSampleMergelogs(cmd *cobra.Command) {

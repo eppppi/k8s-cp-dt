@@ -21,7 +21,7 @@ var getAllMergelogsCmd = &cobra.Command{
 	Short: "get all mergelogs",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		getAllMergelogs()
+		getAllMergelogs(cmd)
 	},
 }
 
@@ -29,8 +29,9 @@ func init() {
 	rootCmd.AddCommand(getAllMergelogsCmd)
 }
 
-func getAllMergelogs() {
-	address := "localhost:10039"
+func getAllMergelogs(cmd *cobra.Command) {
+	// address := "localhost:10039"
+	address := cmd.Flag("endpoint").Value.String()
 	conn, err := grpc.Dial(
 		address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
