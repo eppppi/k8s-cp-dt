@@ -90,7 +90,7 @@ func generateCpid() (string, error) {
 	return newUuid.String(), nil
 }
 
-// GetTraceContext returns trace context
+// GetTraceContext returns trace context (maybe nil)
 func GetTraceContext(objInterface interface{}) *TraceContext {
 	obj, err := meta.Accessor(objInterface)
 	if err != nil {
@@ -102,29 +102,20 @@ func GetTraceContext(objInterface interface{}) *TraceContext {
 		var traceCtxs TraceContext
 		err := json.Unmarshal([]byte(ctxs), &traceCtxs)
 		if err != nil {
-			log.Printf("warning: unmarshal error: %v\n", err)
+			log.Printf("warning: unmarshal error: %v\n, returning nil", err)
 			return nil
 		}
 		return &traceCtxs
 	} else {
-		log.Println("no trace context in this object, creating new trace context")
-		return &TraceContext{}
+		log.Println("no trace context in this object, returning nil")
+		return nil
 	}
 }
 
 // SetTraceContext sets trace context
 func SetTraceContext(objInterface interface{}, traceCtx *TraceContext) error {
-	// validate cpids
-	if traceCtx.Cpid == "" {
-		return fmt.Errorf("cpid is empty string: %v", traceCtx)
-	}
-	for _, ancCpid := range traceCtx.AncCpids {
-		if ancCpid == "" {
-			return fmt.Errorf("ancCpid is empty string: %v", traceCtx)
-		}
-	}
-	if len(traceCtx.AncCpids) > NUM_ANC_CPIDS {
-		return fmt.Errorf("ancCpids (limit: %d) is too long: %v", NUM_ANC_CPIDS, traceCtx)
+	if err := traceCtx.validateTctx(); err != nil {
+		return err
 	}
 
 	obj, err := meta.Accessor(objInterface)
