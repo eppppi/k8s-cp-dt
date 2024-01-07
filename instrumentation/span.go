@@ -42,11 +42,11 @@ const (
 
 // InitSender initializes a sender (gRPC client).
 // If wait is true, this func waits until setup is done.
-func InitSender(endpoint string) (<-chan struct{}, func()) {
+func InitSender(endpoint string) (<-chan error, func()) {
 	doneCh := make(chan struct{})
 	spanCh = make(chan *mergelogpb.Span, CHANNEL_SIZE)
 	mergelogCh = make(chan *mergelogpb.Mergelog, CHANNEL_SIZE)
-	setupDoneCh := make(chan struct{})
+	setupDoneCh := make(chan error)
 	finishCh := make(chan struct{})
 	go runSender(doneCh, endpoint, spanCh, mergelogCh, setupDoneCh, finishCh)
 
@@ -180,7 +180,7 @@ func (s *Span) ToProtoSpan() *mergelogpb.Span {
 // RunSender runs a sender.
 // This func is intended to be called as a goroutine.
 // ctx is a context that is used to stop this func.
-func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogpb.Span, mergelogCh <-chan *mergelogpb.Mergelog, setupDoneCh chan<- struct{}, finishCh chan<- struct{}) {
+func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogpb.Span, mergelogCh <-chan *mergelogpb.Mergelog, setupDoneCh chan<- error, finishCh chan<- struct{}) {
 	log.Println("runSender() started")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -192,8 +192,7 @@ func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogp
 		grpc.WithBlock(),
 	)
 	if err != nil {
-		log.Println("Connection failed:", err, ": the trace-server is not running or the endpoint is wrong")
-		setupDoneCh <- struct{}{}
+		setupDoneCh <- fmt.Errorf("connection failed: %v: the trace-server is not running or the endpoint is wrong", err)
 		finishCh <- struct{}{}
 		return
 	} else {
@@ -202,7 +201,7 @@ func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogp
 	defer conn.Close()
 	client := mergelogpb.NewMergelogServiceClient(conn)
 
-	setupDoneCh <- struct{}{}
+	setupDoneCh <- nil
 
 	for {
 		select {
