@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"slices"
 
 	"github.com/google/uuid"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -36,7 +35,7 @@ func (tctx *TraceContext) validateTctx() error {
 	if len(tctx.AncCpids) > NUM_ANC_CPIDS {
 		return fmt.Errorf("ancCpids (limit: %d) is too long %d", NUM_ANC_CPIDS, len(tctx.AncCpids))
 	}
-	if slices.Contains(tctx.AncCpids, tctx.Cpid) {
+	if containsString(tctx.AncCpids, tctx.Cpid) {
 		return fmt.Errorf("cpid is included in ancCpids")
 	}
 	return nil
@@ -229,9 +228,9 @@ func (cg *cpidGraph) addTraceContext(tctx *TraceContext) {
 	tmpAncCpidsOfTctx := make([]string, len(tctx.AncCpids))
 	copy(tmpAncCpidsOfTctx, tctx.AncCpids)
 	for k := range cg.roots {
-		if slices.Contains(tctx.AncCpids, k) { // 自分の先祖(k)を発見した場合、そのさらに先祖(cg.roots[k])を自分のtmpAncCpidsOfTctxに追加していく
+		if containsString(tctx.AncCpids, k) { // 自分の先祖(k)を発見した場合、そのさらに先祖(cg.roots[k])を自分のtmpAncCpidsOfTctxに追加していく
 			for _, v := range cg.roots[k] {
-				if !slices.Contains(tmpAncCpidsOfTctx, v) {
+				if !containsString(tmpAncCpidsOfTctx, v) {
 					tmpAncCpidsOfTctx = append(tmpAncCpidsOfTctx, v)
 				}
 			}
@@ -243,9 +242,9 @@ func (cg *cpidGraph) addTraceContext(tctx *TraceContext) {
 	// if so, add tctx.AncCpids to the values of the root. if not, add tctx to roots.
 	cpidIsIncluded := false
 	for k := range cg.roots {
-		if k == tctx.Cpid || slices.Contains(cg.roots[k], tctx.Cpid) {
+		if k == tctx.Cpid || containsString(cg.roots[k], tctx.Cpid) {
 			for i := len(tmpAncCpidsOfTctx) - 1; i >= 0; i-- {
-				if !slices.Contains(cg.roots[k], tmpAncCpidsOfTctx[i]) {
+				if !containsString(cg.roots[k], tmpAncCpidsOfTctx[i]) {
 					cg.roots[k] = append([]string{tmpAncCpidsOfTctx[i]}, cg.roots[k]...)
 				}
 			}
@@ -255,4 +254,20 @@ func (cg *cpidGraph) addTraceContext(tctx *TraceContext) {
 	if !cpidIsIncluded {
 		cg.roots[tctx.Cpid] = tmpAncCpidsOfTctx
 	}
+}
+
+// ======= utils =======
+
+// Contains returns true if str is included in slice
+// implemented because slices.Contains is introduced in go 1.21 (which is not supported in k8s 1.27)
+func containsString(slice []string, str string) bool {
+	if slice == nil {
+		return false
+	}
+	for _, s := range slice {
+		if s == str {
+			return true
+		}
+	}
+	return false
 }
