@@ -193,6 +193,7 @@ func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogp
 	)
 	if err != nil {
 		log.Println("Connection failed:", err, ": the trace-server is not running or the endpoint is wrong")
+		finishCh <- struct{}{}
 		return
 	} else {
 		log.Println("Connection succeeded")
