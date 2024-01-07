@@ -104,24 +104,24 @@ func (s *Span) End() {
 
 // GenerateNewTctxAndSendMergelog generates a new trace context. if retTctx is nil, no mergelog is sent.
 func MergeAndSendMergelog(newTctx *TraceContext, sourceTctxs []*TraceContext, causeMsg, by string) (*TraceContext, error) {
-	// deep-copy tctxs so that the original tctxs are not modified
-	newTctx = newTctx.DeepCopyTraceContext()
-	for i := 0; i < len(sourceTctxs); i++ {
-		sourceTctxs[i] = sourceTctxs[i].DeepCopyTraceContext()
-	}
-
 	return mergeAndSendMergelog(newTctx, sourceTctxs, causeMsg, by)
 }
 
 // generateNewTctxAndSendMergelog generates a new trace context. if retTctx is nil, no mergelog is sent.
 func mergeAndSendMergelog(newTctx *TraceContext, sourceTctxs []*TraceContext, causeMsg, by string) (*TraceContext, error) {
 	// validate arguments
-	if newTctx == nil {
-		return nil, fmt.Errorf("newTctx is nil")
+	if err := newTctx.validateTctx(); err != nil {
+		return nil, err
 	}
 	if len(sourceTctxs) == 0 {
 		log.Println("len(sourceTctxs) == 0, so no need to merge and no mergelog is sent")
 		return newTctx, nil
+	}
+
+	// deep-copy tctxs so that the original tctxs are not modified
+	newTctx = newTctx.DeepCopyTraceContext()
+	for i := 0; i < len(sourceTctxs); i++ {
+		sourceTctxs[i] = sourceTctxs[i].DeepCopyTraceContext()
 	}
 
 	retTctx, newCpid, sourceCpids := mergeTctxs(append(sourceTctxs, newTctx))

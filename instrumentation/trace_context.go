@@ -21,6 +21,9 @@ type TraceContext struct {
 
 // DeepCopyTraceContext deep copies a trace context
 func (tctx *TraceContext) DeepCopyTraceContext() *TraceContext {
+	if tctx == nil {
+		return nil
+	}
 	return newTraceContext(tctx.Cpid, tctx.AncCpids)
 }
 
