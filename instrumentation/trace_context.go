@@ -30,16 +30,16 @@ func (tctx *TraceContext) DeepCopyTraceContext() *TraceContext {
 // ValidateTctx validates if tctx is valid
 func (tctx *TraceContext) validateTctx() error {
 	if tctx == nil {
-		return fmt.Errorf("tctx is nil")
+		return fmt.Errorf("validation failed: tctx is nil")
 	}
 	if tctx.Cpid == "" {
-		return fmt.Errorf("cpid is empty string")
+		return fmt.Errorf("validation failed: cpid is empty string")
 	}
 	if len(tctx.AncCpids) > NUM_ANC_CPIDS {
-		return fmt.Errorf("ancCpids (limit: %d) is too long %d", NUM_ANC_CPIDS, len(tctx.AncCpids))
+		return fmt.Errorf("validation failed: ancCpids (limit: %d) is too long %d", NUM_ANC_CPIDS, len(tctx.AncCpids))
 	}
 	if containsString(tctx.AncCpids, tctx.Cpid) {
-		return fmt.Errorf("cpid is included in ancCpids")
+		return fmt.Errorf("validation failed: cpid is included in ancCpids")
 	}
 	return nil
 }

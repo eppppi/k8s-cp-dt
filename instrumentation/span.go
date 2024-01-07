@@ -113,18 +113,22 @@ func mergeAndSendMergelog(newTctx *TraceContext, sourceTctxs []*TraceContext, ca
 	if err := newTctx.validateTctx(); err != nil {
 		return nil, err
 	}
-	if len(sourceTctxs) == 0 {
-		log.Println("len(sourceTctxs) == 0, so no need to merge and no mergelog is sent")
+	// deep-copy tctxs so that the original tctxs are not modified
+	newTctx = newTctx.DeepCopyTraceContext()
+	newSourceTctxs := make([]*TraceContext, 0)
+	for i := 0; i < len(sourceTctxs); i++ {
+		if err := sourceTctxs[i].validateTctx(); err != nil {
+			log.Println("validation error, skipping this tctx", err)
+		} else {
+			newSourceTctxs = append(newSourceTctxs, sourceTctxs[i].DeepCopyTraceContext())
+		}
+	}
+	if len(newSourceTctxs) == 0 {
+		log.Println("size of valid sourceTctxs is 0, so no need to merge and no mergelog is sent")
 		return newTctx, nil
 	}
 
-	// deep-copy tctxs so that the original tctxs are not modified
-	newTctx = newTctx.DeepCopyTraceContext()
-	for i := 0; i < len(sourceTctxs); i++ {
-		sourceTctxs[i] = sourceTctxs[i].DeepCopyTraceContext()
-	}
-
-	retTctx, newCpid, sourceCpids := mergeTctxs(append(sourceTctxs, newTctx))
+	retTctx, newCpid, sourceCpids := mergeTctxs(append(newSourceTctxs, newTctx))
 	if sourceCpids != nil {
 		err := sendMergelog(newCpid, sourceCpids, causeMsg, by)
 		if err != nil {
