@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"k8s.io/apimachinery/pkg/api/meta"
+
+	mergelogpb "github.com/eppppi/k8s-cp-dt/mergelog/src/pkg/grpc"
 )
 
 const (
@@ -49,7 +51,7 @@ func NewRootTraceContextAndSendMergelog(message, by string) *TraceContext {
 	cpid, _ := generateCpid()
 	newTctx := newTraceContext(cpid, []string{})
 
-	sendMergelog(cpid, []string{}, message, by)
+	sendMergelog(cpid, []string{}, mergelogpb.CauseType_CAUSE_TYPE_NEW_CHANGE, message, by)
 
 	return newTctx
 }
@@ -93,6 +95,7 @@ func generateCpid() (string, error) {
 	return newUuid.String(), nil
 }
 
+// REFACTOR: from interface{} to runtime.Object
 // GetTraceContext returns trace context (maybe nil)
 func GetTraceContext(objInterface interface{}) *TraceContext {
 	obj, err := meta.Accessor(objInterface)
@@ -115,6 +118,7 @@ func GetTraceContext(objInterface interface{}) *TraceContext {
 	}
 }
 
+// REFACTOR: from interface{} to runtime.Object
 // SetTraceContext sets trace context
 func SetTraceContext(objInterface interface{}, traceCtx *TraceContext) error {
 	if err := traceCtx.validateTctx(); err != nil {

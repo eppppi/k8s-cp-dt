@@ -118,7 +118,7 @@ func mergeAndSendMergelog(newTctx *TraceContext, sourceTctxs []*TraceContext, ca
 	newSourceTctxs := make([]*TraceContext, 0)
 	for i := 0; i < len(sourceTctxs); i++ {
 		if err := sourceTctxs[i].validateTctx(); err != nil {
-			log.Println("validation error, skipping this tctx", err)
+			log.Println("validation error, skipping this tctx:", err)
 		} else {
 			newSourceTctxs = append(newSourceTctxs, sourceTctxs[i].DeepCopyTraceContext())
 		}
@@ -130,7 +130,7 @@ func mergeAndSendMergelog(newTctx *TraceContext, sourceTctxs []*TraceContext, ca
 
 	retTctx, newCpid, sourceCpids := mergeTctxs(append(newSourceTctxs, newTctx))
 	if sourceCpids != nil {
-		err := sendMergelog(newCpid, sourceCpids, causeMsg, by)
+		err := sendMergelog(newCpid, sourceCpids, mergelogpb.CauseType_CAUSE_TYPE_MERGE, causeMsg, by)
 		if err != nil {
 			panic(err) // should not happen because of prior validation
 		}
@@ -139,7 +139,7 @@ func mergeAndSendMergelog(newTctx *TraceContext, sourceTctxs []*TraceContext, ca
 }
 
 // GenerateAndSendMergelog generates a mergelog and push it to channel
-func sendMergelog(newCpid string, sourceCpids []string, causeMsg, by string) error {
+func sendMergelog(newCpid string, sourceCpids []string, causeType mergelogpb.CauseType, causeMsg, by string) error {
 	// validate cpids
 	if newCpid == "" {
 		return fmt.Errorf("newCpid is empty string")
