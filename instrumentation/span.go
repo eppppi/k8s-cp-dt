@@ -145,10 +145,12 @@ func sendMergelog(newCpid string, sourceCpids []string, causeType mergelogpb.Cau
 	log.Println("EPPPPI-DEBUG: sendMergelog() invoked")
 	// validate cpids
 	if newCpid == "" {
+		log.Println("EPPPPI-DEBUG (sendMergelog()): newCpid is empty string")
 		return fmt.Errorf("newCpid is empty string")
 	}
 	for _, sourceCpid := range sourceCpids {
 		if sourceCpid == "" {
+			log.Println("EPPPPI-DEBUG (sendMergelog()): one of sourceCpid is empty string")
 			return fmt.Errorf("one of sourceCpid is empty string")
 		}
 	}
@@ -165,6 +167,7 @@ func sendMergelog(newCpid string, sourceCpids []string, causeType mergelogpb.Cau
 		CauseMessage: causeMsg,
 		By:           by,
 	}
+	log.Println("EPPPPI-DEBUG: mergelog sent into mergelogCh")
 	mergelogCh <- mergelog
 	return nil
 }
