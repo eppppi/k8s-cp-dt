@@ -158,7 +158,7 @@ func sendMergelog(newCpid string, sourceCpids []string, causeType mergelogpb.Cau
 		NewCpid:      &mergelogpb.CPID{Cpid: newCpid},
 		SourceCpids:  srcCpids,
 		Time:         timestamppb.New(time.Now()),
-		CauseType:    mergelogpb.CauseType_CAUSE_TYPE_NEW_CHANGE,
+		CauseType:    causeType,
 		CauseMessage: causeMsg,
 		By:           by,
 	}
