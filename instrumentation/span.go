@@ -210,10 +210,12 @@ func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogp
 	}
 	defer conn.Close()
 	client := mergelogpb.NewMergelogServiceClient(conn)
+	log.Println("EPPPPI-DEBUG: client created")
 
 	setupDoneCh <- nil
 
 	for {
+		log.Println("EPPPPI-DEBUG: runSender() loop started")
 		select {
 		case <-doneCh:
 			// TODO: graceful shutdown (wait until all channels are empty)
