@@ -42,13 +42,13 @@ const (
 
 // InitSender initializes a sender (gRPC client).
 // If wait is true, this func waits until setup is done.
-func InitSender(endpoint string) (<-chan error, func()) {
+func InitSender(endpoint string, timeout time.Duration) (<-chan error, func()) {
 	doneCh := make(chan struct{})
 	spanCh = make(chan *mergelogpb.Span, CHANNEL_SIZE)
 	mergelogCh = make(chan *mergelogpb.Mergelog, CHANNEL_SIZE)
 	setupDoneCh := make(chan error)
 	finishCh := make(chan struct{})
-	go runSender(doneCh, endpoint, spanCh, mergelogCh, setupDoneCh, finishCh)
+	go runSender(doneCh, endpoint, spanCh, mergelogCh, setupDoneCh, finishCh, timeout)
 
 	return setupDoneCh, func() {
 		doneCh <- struct{}{}
@@ -184,9 +184,9 @@ func (s *Span) ToProtoSpan() *mergelogpb.Span {
 // RunSender runs a sender.
 // This func is intended to be called as a goroutine.
 // ctx is a context that is used to stop this func.
-func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogpb.Span, mergelogCh <-chan *mergelogpb.Mergelog, setupDoneCh chan<- error, finishCh chan<- struct{}) {
+func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogpb.Span, mergelogCh <-chan *mergelogpb.Mergelog, setupDoneCh chan<- error, finishCh chan<- struct{}, timeout time.Duration) {
 	log.Println("runSender() started")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	// TODO(improve): 毎回送信するのではなく、一定時間ごとに送信するようにする
 	conn, err := grpc.DialContext(
