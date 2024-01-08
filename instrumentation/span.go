@@ -109,6 +109,8 @@ func MergeAndSendMergelog(newTctx *TraceContext, sourceTctxs []*TraceContext, ca
 
 // generateNewTctxAndSendMergelog generates a new trace context. if retTctx is nil, no mergelog is sent.
 func mergeAndSendMergelog(newTctx *TraceContext, sourceTctxs []*TraceContext, causeMsg, by string) (*TraceContext, error) {
+	log.Println("EPPPPI-DEBUG: mergeAndSendMergelog() started")
+	defer log.Println("EPPPPI-DEBUG: mergeAndSendMergelog() ended")
 	// validate arguments
 	if err := newTctx.validateTctx(); err != nil {
 		return nil, err
@@ -140,6 +142,7 @@ func mergeAndSendMergelog(newTctx *TraceContext, sourceTctxs []*TraceContext, ca
 
 // GenerateAndSendMergelog generates a mergelog and push it to channel
 func sendMergelog(newCpid string, sourceCpids []string, causeType mergelogpb.CauseType, causeMsg, by string) error {
+	log.Println("EPPPPI-DEBUG: sendMergelog() invoked")
 	// validate cpids
 	if newCpid == "" {
 		return fmt.Errorf("newCpid is empty string")
