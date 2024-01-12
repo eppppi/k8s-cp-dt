@@ -16,12 +16,12 @@ import (
 type traceContextKey string
 
 const (
-	KOC_PARENTID_KEY traceContextKey = "eppppi.github.io/koc-parentid"
-	KOC_TCTX_KEY     traceContextKey = "eppppi.github.io/koc-tctx"
+	kOC_PARENTID_KEY traceContextKey = "eppppi.github.io/koc-parentid"
+	kOC_TCTX_KEY     traceContextKey = "eppppi.github.io/koc-tctx"
 )
 
 func GetParentIdFromContext(ctx context.Context) string {
-	if val := ctx.Value(KOC_PARENTID_KEY); val == nil {
+	if val := ctx.Value(kOC_PARENTID_KEY); val == nil {
 		return ""
 	} else {
 		return val.(string)
@@ -29,19 +29,19 @@ func GetParentIdFromContext(ctx context.Context) string {
 }
 
 func SetParentIdToContext(ctx context.Context, parentId string) context.Context {
-	return context.WithValue(ctx, KOC_PARENTID_KEY, parentId)
+	return context.WithValue(ctx, kOC_PARENTID_KEY, parentId)
 }
 
 func GetTraceContextsFromContext(ctx context.Context) []*TraceContext {
-	if val := ctx.Value(KOC_TCTX_KEY); val == nil {
+	if val, ok := ctx.Value(kOC_TCTX_KEY).([]*TraceContext); !ok {
 		return nil
 	} else {
-		return val.([]*TraceContext)
+		return val
 	}
 }
 
 func SetTraceContextsToContext(ctx context.Context, tctxs []*TraceContext) context.Context {
-	return context.WithValue(ctx, KOC_TCTX_KEY, tctxs)
+	return context.WithValue(ctx, kOC_TCTX_KEY, tctxs)
 }
 
 var (
