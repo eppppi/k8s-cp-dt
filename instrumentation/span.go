@@ -13,13 +13,14 @@ import (
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type contextKey string
+type traceContextKey string
 
 const (
-	KOC_PARENTID_KEY contextKey = "eppppi.github.io/koc-parentid"
+	KOC_PARENTID_KEY traceContextKey = "eppppi.github.io/koc-parentid"
+	KOC_TCTX_KEY     traceContextKey = "eppppi.github.io/koc-tctx"
 )
 
-func GetParentId(ctx context.Context) string {
+func GetParentIdFromContext(ctx context.Context) string {
 	if val := ctx.Value(KOC_PARENTID_KEY); val == nil {
 		return ""
 	} else {
@@ -27,8 +28,20 @@ func GetParentId(ctx context.Context) string {
 	}
 }
 
-func SetParentId(ctx context.Context, parentId string) context.Context {
+func SetParentIdToContext(ctx context.Context, parentId string) context.Context {
 	return context.WithValue(ctx, KOC_PARENTID_KEY, parentId)
+}
+
+func GetTraceContextsFromContext(ctx context.Context) []*TraceContext {
+	if val := ctx.Value(KOC_TCTX_KEY); val == nil {
+		return nil
+	} else {
+		return val.([]*TraceContext)
+	}
+}
+
+func SetTraceContextsToContext(ctx context.Context, tctxs []*TraceContext) context.Context {
+	return context.WithValue(ctx, KOC_TCTX_KEY, tctxs)
 }
 
 var (
@@ -87,10 +100,10 @@ func Start(ctx context.Context, cpid, service, objKind, objName, msg string) (co
 		objectKind: objKind,
 		objectName: objName,
 		message:    msg,
-		spanId:     spanId.String(),  // 新しいspanIdを入れる
-		parentId:   GetParentId(ctx), // 古いctxのspanIdを入れる
+		spanId:     spanId.String(),             // 新しいspanIdを入れる
+		parentId:   GetParentIdFromContext(ctx), // 古いctxのspanIdを入れる
 	}
-	newCtx := SetParentId(ctx, spanId.String())
+	newCtx := SetParentIdToContext(ctx, spanId.String())
 	return newCtx, span
 }
 
