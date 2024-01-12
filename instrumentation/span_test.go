@@ -9,7 +9,7 @@ import (
 
 func TestStart(t *testing.T) {
 	// init sender
-	setupDoneCh, cancel := InitSender("localhost:10039")
+	setupDoneCh, cancel := InitSender("localhost:10039", 1*time.Second)
 	<-setupDoneCh
 	defer cancel()
 
