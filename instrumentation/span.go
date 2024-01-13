@@ -84,10 +84,17 @@ type Span struct {
 	parentId   string
 }
 
-// Start starts a span. Eighter cpid or parentSpanId, but not both must be specified
+// Start starts a span. Eighter cpid or parentSpanId, and not both must be specified
 func Start(ctx context.Context, cpid, service, objKind, objName, msg string) (context.Context, *Span, error) {
 	if parentSpanId := GetParentIdFromContext(ctx); (parentSpanId == "" && cpid == "") || (parentSpanId != "" && cpid != "") {
-		return nil, nil, fmt.Errorf("eighter cpid or parentSpanId, but not both must be specified")
+		return nil, nil, fmt.Errorf("eighter cpid or parentSpanId, and not both must be specified")
+	}
+	if cpid == "" {
+		tctxs := GetTraceContextsFromContext(ctx)
+		if len(tctxs) == 0 {
+			return nil, nil, fmt.Errorf("cpid = \"\", and no trace context found in ctx")
+		}
+		cpid = tctxs[0].GetCpid()
 	}
 
 	// 古いctxには、呼び出し側の関数のspanIdが入っている

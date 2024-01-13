@@ -13,23 +13,31 @@ type traceServer struct {
 	mergelogpb.UnimplementedMergelogServiceServer
 }
 
-type mergelogListStruct struct {
-	list []*mergelogpb.Mergelog
-	mu   sync.RWMutex
+// all CPID must show up only once as NewCPID.
+// ml has all mergelogs stored in this trace server,
+// and mg represents the merge graph. (each node is a cpid, and each edge is from mergelog)
+type mergeGraph struct {
+	// REFACTOR: Is *mergelogpb.CPID the right type for key? -> No, it should be string.
+	mg map[string][]*mergelogpb.Mergelog
+	ml []*mergelogpb.Mergelog
+	mu sync.RWMutex
 }
 
-var mergelogList mergelogListStruct
+var mg mergeGraph
 
-func (ml *mergelogListStruct) append(mergelogs []*mergelogpb.Mergelog) {
-	ml.mu.Lock()
-	defer ml.mu.Unlock()
-	ml.list = append(ml.list, mergelogs...)
+func (mg *mergeGraph) add(mergelog *mergelogpb.Mergelog) {
+	mg.mu.Lock()
+	defer mg.mu.Unlock()
+	for _, srcCpid := range mergelog.SourceCpids {
+		mg.mg[srcCpid.GetCpid()] = append(mg.mg[srcCpid.GetCpid()], mergelog)
+	}
+	mg.ml = append(mg.ml, mergelog)
 }
 
-func (ml *mergelogListStruct) getAll() []*mergelogpb.Mergelog {
-	ml.mu.RLock()
-	defer ml.mu.RUnlock()
-	return ml.list
+func (mg *mergeGraph) getAll() []*mergelogpb.Mergelog {
+	mg.mu.RLock()
+	defer mg.mu.RUnlock()
+	return mg.ml
 }
 
 type spanListStruct struct {
@@ -54,7 +62,9 @@ func (ml *spanListStruct) getAll() []*mergelogpb.Span {
 // Post receives the mergelogs from controllers
 func (s *traceServer) PostMergelogs(ctx context.Context, req *mergelogpb.MergelogRequest) (*emptypb.Empty, error) {
 	incomingMergelogs := req.GetMergelogs()
-	mergelogList.append(incomingMergelogs)
+	for _, mergelog := range incomingMergelogs {
+		mg.add(mergelog)
+	}
 	log.Println("mergelog received")
 	return &emptypb.Empty{}, nil
 }
@@ -62,13 +72,30 @@ func (s *traceServer) PostMergelogs(ctx context.Context, req *mergelogpb.Mergelo
 // GetAllMergelogs gets all mergelogs stored in this trace server
 func (s *traceServer) GetAllMergelogs(ctx context.Context, req *emptypb.Empty) (*mergelogpb.Mergelogs, error) {
 	return &mergelogpb.Mergelogs{
-		Mergelogs: mergelogList.getAll(),
+		Mergelogs: mg.getAll(),
 	}, nil
 }
 
-// TOOD: implement
+// TOOD: test
 func (s *traceServer) GetRelevantMergelogs(ctx context.Context, req *mergelogpb.CPID) (*mergelogpb.Mergelogs, error) {
-	return &mergelogpb.Mergelogs{}, nil
+	// first, get all relevant descendant cpids
+	descendantCPIDs := descendantCPIDs(req)
+	if len(descendantCPIDs) == 0 {
+		return &mergelogpb.Mergelogs{}, nil
+	}
+
+	// second, for each descendant cpid, get all mergelogs
+	retMergelogs := make([]*mergelogpb.Mergelog, 0)
+	allMergelogs := mg.getAll()
+	for _, desCpid := range descendantCPIDs {
+		for _, mergelog := range allMergelogs {
+			if desCpid.GetCpid() == mergelog.GetNewCpid().GetCpid() {
+				retMergelogs = append(retMergelogs, mergelog)
+			}
+		}
+	}
+
+	return &mergelogpb.Mergelogs{Mergelogs: retMergelogs}, nil
 }
 
 func (s *traceServer) PostSpans(ctx context.Context, req *mergelogpb.PostSpansRequest) (*emptypb.Empty, error) {
@@ -84,13 +111,57 @@ func (s *traceServer) GetAllSpans(ctx context.Context, req *emptypb.Empty) (*mer
 	}, nil
 }
 
-// TODO: implement
+// TOOD: test
 func (s *traceServer) GetRelevantSpans(ctx context.Context, req *mergelogpb.CPID) (*mergelogpb.GetRelevantSpansResponse, error) {
+	// first, get all relevant descendant cpids
+	descendantCPIDs := descendantCPIDs(req)
+	if len(descendantCPIDs) == 0 {
+		return &mergelogpb.GetRelevantSpansResponse{}, nil
+	}
 
-	return &mergelogpb.GetRelevantSpansResponse{}, nil
+	// second, for each descendant cpid, get all spans
+	retSpans := make([]*mergelogpb.Span, 0)
+	allSpans := spanList.getAll()
+	for _, desCpid := range descendantCPIDs {
+		for _, span := range allSpans {
+			if desCpid.GetCpid() == span.GetCpid().GetCpid() {
+				retSpans = append(retSpans, span)
+			}
+		}
+	}
+
+	return &mergelogpb.GetRelevantSpansResponse{Spans: retSpans}, nil
 }
 
 func NewTraceServer() *traceServer {
-	mergelogList.list = make([]*mergelogpb.Mergelog, 0)
+	mg.mg = make(map[string][]*mergelogpb.Mergelog)
+	mg.ml = make([]*mergelogpb.Mergelog, 0)
 	return &traceServer{}
+}
+
+// descendantCPIDs returns all descendant cpids of the given cpid including itself
+func descendantCPIDs(cpid *mergelogpb.CPID) []*mergelogpb.CPID {
+	// find a mergelog that has the given cpid as a NewCPID
+	// if not found, from the rules of merge graph, no such cpid exists
+	if _, ok := mg.mg[cpid.GetCpid()]; !ok {
+		return nil
+	}
+
+	visitedCpids := make(map[*mergelogpb.CPID]struct{})
+	queue := make([]*mergelogpb.CPID, 0)
+	queue = append(queue, cpid)
+	for len(queue) > 0 {
+		curCpid := queue[0]
+		queue = queue[1:]
+		visitedCpids[curCpid] = struct{}{}
+		for _, mergelog := range mg.mg[curCpid.GetCpid()] {
+			queue = append(queue, mergelog.GetNewCpid())
+		}
+	}
+
+	retCpids := make([]*mergelogpb.CPID, 0, len(visitedCpids))
+	for k := range visitedCpids {
+		retCpids = append(retCpids, k)
+	}
+	return retCpids
 }
