@@ -52,7 +52,14 @@ func getAllMergelogs(cmd *cobra.Command) {
 	} else {
 		mergelogs := res.GetMergelogs()
 		for _, mergelog := range mergelogs {
-			fmt.Println(mergelog.String())
+			// fmt.Println(mergelog.String())
+			fmt.Println(mergelog.GetNewCpid())
+			fmt.Println(mergelog.GetSourceCpids())
+			fmt.Println(mergelog.GetTime().AsTime())
+			fmt.Println(mergelog.GetCauseType().String())
+			fmt.Println(mergelog.GetCauseMessage())
+			fmt.Println(mergelog.GetBy())
+			fmt.Println("------------------------------------")
 		}
 	}
 }
