@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
 package cmd
 
@@ -16,22 +16,21 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// getAllMergelogsCmd represents the getAllMergelogs command
-var getAllMergelogsCmd = &cobra.Command{
-	Use:   "getAllMergelogs",
-	Short: "get all mergelogs",
+// getAllSpansCmd represents the getAllSpans command
+var getAllSpansCmd = &cobra.Command{
+	Use:   "getAllSpans",
+	Short: "get all spans",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		getAllMergelogs(cmd)
+		getAllSpans(cmd)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(getAllMergelogsCmd)
+	rootCmd.AddCommand(getAllSpansCmd)
 }
 
-func getAllMergelogs(cmd *cobra.Command) {
-	// address := "localhost:10039"
+func getAllSpans(cmd *cobra.Command) {
 	address := cmd.Flag("endpoint").Value.String()
 	conn, err := grpc.Dial(
 		address,
@@ -45,15 +44,14 @@ func getAllMergelogs(cmd *cobra.Command) {
 	defer conn.Close()
 
 	client := mergelogpb.NewMergelogServiceClient(conn)
-
 	// logic
-	res, err := client.GetAllMergelogs(context.Background(), &emptypb.Empty{})
+	res, err := client.GetAllSpans(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		mergelogs := res.GetMergelogs()
-		for _, mergelog := range mergelogs {
-			clilib.PrettyPrintMergelog(mergelog)
+		spans := res.GetSpans()
+		for _, span := range spans {
+			clilib.PrettyPrintSpan(span)
 			fmt.Println("------------------------------------")
 		}
 	}

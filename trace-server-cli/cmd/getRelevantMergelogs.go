@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
 package cmd
 
@@ -13,25 +13,29 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// getAllMergelogsCmd represents the getAllMergelogs command
-var getAllMergelogsCmd = &cobra.Command{
-	Use:   "getAllMergelogs",
-	Short: "get all mergelogs",
+// getRelevantMergelogsCmd represents the getRelevantMergelogs command
+var getRelevantMergelogsCmd = &cobra.Command{
+	Use:   "getRelevantMergelogs",
+	Short: "A brief description of your command",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		getAllMergelogs(cmd)
+		getRelevantMergelogs(cmd)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(getAllMergelogsCmd)
+	rootCmd.AddCommand(getRelevantMergelogsCmd)
+	getRelevantMergelogsCmd.PersistentFlags().String("cpid", "", "original cpid of the relevant mergelogs")
 }
 
-func getAllMergelogs(cmd *cobra.Command) {
-	// address := "localhost:10039"
+func getRelevantMergelogs(cmd *cobra.Command) {
+	cpid := cmd.Flag("cpid").Value.String()
+	if cpid == "" {
+		fmt.Println("cpid is required")
+		return
+	}
 	address := cmd.Flag("endpoint").Value.String()
 	conn, err := grpc.Dial(
 		address,
@@ -46,8 +50,9 @@ func getAllMergelogs(cmd *cobra.Command) {
 
 	client := mergelogpb.NewMergelogServiceClient(conn)
 
-	// logic
-	res, err := client.GetAllMergelogs(context.Background(), &emptypb.Empty{})
+	request := &mergelogpb.CPID{Cpid: cpid}
+
+	res, err := client.GetRelevantMergelogs(context.Background(), request)
 	if err != nil {
 		fmt.Println(err)
 	} else {
