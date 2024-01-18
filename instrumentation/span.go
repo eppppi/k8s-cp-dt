@@ -84,7 +84,7 @@ type Span struct {
 	parentId   string
 }
 
-// Start starts a span. Eighter cpid or parentSpanId, and not both must be specified
+// Start starts a span. Eighter cpid or parentSpanId, and not both must be specified  <- ?????? not "cpid or parentSpanId", but "cpid or tctx in ctx"?
 func Start(ctx context.Context, cpid, service, objKind, objName, msg string) (context.Context, *Span, error) {
 	if parentSpanId := GetParentIdFromContext(ctx); (parentSpanId == "" && cpid == "") || (parentSpanId != "" && cpid != "") {
 		return nil, nil, fmt.Errorf("eighter cpid or parentSpanId, and not both must be specified")
@@ -94,6 +94,8 @@ func Start(ctx context.Context, cpid, service, objKind, objName, msg string) (co
 		if len(tctxs) == 0 {
 			return nil, nil, fmt.Errorf("cpid = \"\", and no trace context found in ctx")
 		}
+		// TODO (REFACTOR): use all of tctxs instead of only one
+		// TODO (REFACTOR) (idea): change Span to embrace multiple tctxs so that we don't need to merge tctxs here every time
 		cpid = tctxs[0].GetCpid()
 	}
 

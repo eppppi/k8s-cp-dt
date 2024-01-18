@@ -147,28 +147,18 @@ func Test_descendantCPIDs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := descendantCPIDs(tt.args.cpid)
-			gotCpidMap := make(map[*mergelogpb.CPID]struct{})
+			gotCpidMap := make(map[string]struct{})
 			for _, v := range got {
-				gotCpidMap[v] = struct{}{}
+				gotCpidMap[v.GetCpid()] = struct{}{}
 			}
-			wantCpidMap := make(map[*mergelogpb.CPID]struct{})
+			wantCpidMap := make(map[string]struct{})
 			for _, v := range tt.want {
-				wantCpidMap[v] = struct{}{}
+				wantCpidMap[v.GetCpid()] = struct{}{}
 			}
 			if !reflect.DeepEqual(gotCpidMap, wantCpidMap) {
 				// t.Errorf("descendantCPIDs() = %v, want %v", got, tt.want)
-				for kGot := range gotCpidMap {
-					found := false
-					for kWant := range wantCpidMap {
-						if kGot.Cpid == kWant.Cpid {
-							found = true
-							break
-						}
-					}
-					if !found {
-						t.Errorf("descendantCPIDs() = %v, want %v", got, tt.want)
-						return
-					}
+				if !reflect.DeepEqual(gotCpidMap, wantCpidMap) {
+					t.Errorf("descendantCPIDs() = %v, want %v", got, tt.want)
 				}
 			}
 		})
