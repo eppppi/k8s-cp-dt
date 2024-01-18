@@ -11,10 +11,12 @@ service MergelogService {
     rpc PostMergelogs (MergelogRequest) returns (google.protobuf.Empty);
     rpc GetAllMergelogs (google.protobuf.Empty) returns (Mergelogs);
     rpc GetRelevantMergelogs (CPID) returns (Mergelogs);
+    rpc DeleteAllMergelogs (google.protobuf.Empty) returns (google.protobuf.Empty);
 
     rpc PostSpans (PostSpansRequest) returns (google.protobuf.Empty);
     rpc GetAllSpans (google.protobuf.Empty) returns (GetAllSpansResponse);
     rpc GetRelevantSpans (CPID) returns (GetRelevantSpansResponse);
+    rpc DeleteAllSpans (google.protobuf.Empty) returns (google.protobuf.Empty);
 }
 
 message MergelogRequest {

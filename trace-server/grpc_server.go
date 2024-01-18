@@ -13,6 +13,7 @@ type traceServer struct {
 	mergelogpb.UnimplementedMergelogServiceServer
 }
 
+// mergeGraph represents a merge graph. mergeGraph is thread-safe.
 // all CPID must show up only once as NewCPID.
 // ml has all mergelogs stored in this trace server,
 // and mg represents the merge graph. (each node is a cpid, and each edge is from mergelog)
@@ -40,6 +41,7 @@ func (mg *mergeGraph) getAll() []*mergelogpb.Mergelog {
 	return mg.ml
 }
 
+// spanList represents a list of spans. spanList is thread-safe.
 type spanListStruct struct {
 	list []*mergelogpb.Span
 	mu   sync.RWMutex
@@ -98,6 +100,15 @@ func (s *traceServer) GetRelevantMergelogs(ctx context.Context, req *mergelogpb.
 	return &mergelogpb.Mergelogs{Mergelogs: retMergelogs}, nil
 }
 
+func (s *traceServer) DeleteAllMergelogs(ctx context.Context, req *emptypb.Empty) (*emptypb.Empty, error) {
+	log.Println("DeleteAllMergelogs called")
+	mg.mu.Lock()
+	defer mg.mu.Unlock()
+	mg.mg = make(map[string][]*mergelogpb.Mergelog)
+	mg.ml = make([]*mergelogpb.Mergelog, 0)
+	return &emptypb.Empty{}, nil
+}
+
 func (s *traceServer) PostSpans(ctx context.Context, req *mergelogpb.PostSpansRequest) (*emptypb.Empty, error) {
 	incomingSpans := req.GetSpans()
 	spanList.append(incomingSpans)
@@ -133,6 +144,14 @@ func (s *traceServer) GetRelevantSpans(ctx context.Context, req *mergelogpb.CPID
 	return &mergelogpb.GetRelevantSpansResponse{Spans: retSpans}, nil
 }
 
+func (s *traceServer) DeleteAllSpans(ctx context.Context, req *emptypb.Empty) (*emptypb.Empty, error) {
+	log.Println("DeleteAllSpans called")
+	spanList.mu.Lock()
+	defer spanList.mu.Unlock()
+	spanList.list = make([]*mergelogpb.Span, 0)
+	return &emptypb.Empty{}, nil
+}
+
 func NewTraceServer() *traceServer {
 	mg.mg = make(map[string][]*mergelogpb.Mergelog)
 	mg.ml = make([]*mergelogpb.Mergelog, 0)
@@ -143,7 +162,15 @@ func NewTraceServer() *traceServer {
 func descendantCPIDs(cpid *mergelogpb.CPID) []*mergelogpb.CPID {
 	// find a mergelog that has the given cpid as a NewCPID
 	// if not found, from the rules of merge graph, no such cpid exists
-	if _, ok := mg.mg[cpid.GetCpid()]; !ok {
+	found := false
+	for _, v := range mg.ml {
+		if cpid.GetCpid() == v.GetNewCpid().GetCpid() {
+			found = true
+			break
+		}
+	}
+	if !found {
+		log.Println("EPPPPI-DEBUG descendantCPIDs: no such cpid exists")
 		return nil
 	}
 
