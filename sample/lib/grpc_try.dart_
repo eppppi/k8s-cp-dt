@@ -1,0 +1,31 @@
+import 'package:flutter/material.dart';
+import 'generated/merge_log.pbgrpc.dart';
+import 'generated/google/protobuf/empty.pb.dart' as $1;
+import 'package:grpc/grpc_web.dart';
+
+// Future<String> getAllMergelogs() async {
+//   const proxyPort = 9000;
+//   final channel =
+//       GrpcWebClientChannel.xhr(Uri.parse('http://localhost:$proxyPort'));
+//   final stub = MergelogServiceClient(channel);
+
+//   final emptyRequest = $1.Empty();
+//   var statusText = "";
+
+//   try {
+//     final response = await stub.getAllMergelogs(emptyRequest);
+//     final mergelogs = response.mergelogs;
+//     debugPrint('got response $mergelogs');
+//     if (mergelogs.isNotEmpty) {
+//       return Future.value(
+//         "successfully got response: ${mergelogs[0].causeMessage}",
+//       );
+//     }
+//   } catch (e) {
+//     statusText += "cought error: $e";
+//     debugPrint('Caught error: $e');
+//     print('hoge');
+//   }
+//   await channel.shutdown();
+//   return Future.value('statusText: $statusText.\ncould not get message(?)');
+// }

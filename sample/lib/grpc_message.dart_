@@ -1,0 +1,43 @@
+// import 'package:flutter/material.dart';
+// import 'package:sample/main.dart';
+
+// class GRPCMessage extends StatefulWidget {
+//   const GRPCMessage({Key? key}) : super(key: key);
+
+//   @override
+//   State<GRPCMessage> createState() => _GRPCMessageState();
+// }
+
+// class _GRPCMessageState extends State<GRPCMessage> {
+//   late Future<String> _mergelogs;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _mergelogs = getAllMergelogs();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return FutureBuilder(
+//       future: _mergelogs,
+//       builder: ((context, snapshot) {
+//         switch (snapshot.connectionState) {
+//           case ConnectionState.none:
+//             return const Text("none");
+//           case ConnectionState.waiting:
+//             return const Text("waiting");
+//           case ConnectionState.active:
+//             return const Text("active");
+//           case ConnectionState.done:
+//             return Column(
+//               children: [
+//                 Text("Here is response. ↓"),
+//                 SelectableText(snapshot.data!),
+//               ],
+//             );
+//         }
+//       }),
+//     );
+//   }
+// }
