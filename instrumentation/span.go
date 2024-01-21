@@ -45,6 +45,12 @@ func SetTraceContextsToContext(ctx context.Context, tctxs []*TraceContext) conte
 	return context.WithValue(ctx, kOC_TCTX_KEY, tctxs)
 }
 
+func AddTraceContextToContext(ctx context.Context, tctx *TraceContext) context.Context {
+	tctxs := GetTraceContextsFromContext(ctx)
+	tctxs = append(tctxs, tctx)
+	return SetTraceContextsToContext(ctx, tctxs)
+}
+
 var (
 	spanCh     chan *mergelogpb.Span
 	mergelogCh chan *mergelogpb.Mergelog
