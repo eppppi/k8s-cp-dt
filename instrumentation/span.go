@@ -34,7 +34,9 @@ func SetParentIdToContext(ctx context.Context, parentId string) context.Context 
 }
 
 func GetTraceContextsFromContext(ctx context.Context) []*TraceContext {
-	if val, ok := ctx.Value(kOC_TCTX_KEY).([]*TraceContext); !ok {
+	tctxsInterface := ctx.Value(kOC_TCTX_KEY)
+	// if val, ok := ctx.Value(kOC_TCTX_KEY).([]*TraceContext); !ok {
+	if val, ok := tctxsInterface.([]*TraceContext); !ok {
 		return nil
 	} else {
 		return val
