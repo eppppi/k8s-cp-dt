@@ -34,6 +34,10 @@ func SetParentIdToContext(ctx context.Context, parentId string) context.Context 
 }
 
 func GetTraceContextsFromContext(ctx context.Context) []*TraceContext {
+	if ctx == nil {
+		log.Println("EPPPPI-DEBUG: GetTraceContextsFromContext(): ctx is nil")
+		return nil
+	}
 	tctxsInterface := ctx.Value(kOC_TCTX_KEY)
 	// if val, ok := ctx.Value(kOC_TCTX_KEY).([]*TraceContext); !ok {
 	if val, ok := tctxsInterface.([]*TraceContext); !ok {
