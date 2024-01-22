@@ -96,11 +96,8 @@ type Span struct {
 	parentId   string
 }
 
-// Start starts a span. Eighter cpid or parentSpanId, and not both must be specified  <- ?????? not "cpid or parentSpanId", but "cpid or tctx in ctx"?
+// Start starts a span. If cpid == "" and ctx has no trace context, returns an error.
 func Start(ctx context.Context, cpid, service, objKind, objName, msg string) (context.Context, *Span, error) {
-	if parentSpanId := GetParentIdFromContext(ctx); (parentSpanId == "" && cpid == "") || (parentSpanId != "" && cpid != "") {
-		return ctx, nil, fmt.Errorf("eighter cpid or parentSpanId, and not both must be specified")
-	}
 	if cpid == "" {
 		tctxs := GetTraceContextsFromContext(ctx)
 		if len(tctxs) == 0 {
