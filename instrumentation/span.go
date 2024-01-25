@@ -75,7 +75,8 @@ const (
 
 // InitSender initializes a sender (gRPC client).
 // If wait is true, this func waits until setup is done.
-func InitSender(endpoint string, timeout time.Duration) (<-chan error, func()) {
+func InitSender(endpoint string, timeout time.Duration, _numAncCpids int) (<-chan error, func()) {
+	numAncCpids = _numAncCpids
 	doneCh := make(chan struct{})
 	spanCh = make(chan *mergelogpb.Span, CHANNEL_SIZE)
 	mergelogCh = make(chan *mergelogpb.Mergelog, CHANNEL_SIZE)
@@ -163,6 +164,7 @@ func mergeAndSendMergelog(sourceTctxs []*TraceContext, causeMsg, by string) *Tra
 	}
 
 	retTctx, newCpid, sourceCpids := mergeTctxs(newSourceTctxs)
+	log.Println("EPPPPI-DEBUG= retTctx in mergeAndSendMergelog():", retTctx)
 	if sourceCpids != nil {
 		err := sendMergelog(newCpid, sourceCpids, mergelogpb.CauseType_CAUSE_TYPE_MERGE, causeMsg, by)
 		if err != nil {

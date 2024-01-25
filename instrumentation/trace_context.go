@@ -132,7 +132,7 @@ func GetTraceContext(objInterface interface{}) *TraceContext {
 		}
 		return &traceCtxs
 	} else {
-		log.Println("no trace context in this object, returning nil")
+		log.Printf("no trace context in this object, returning nil (name: %s)\n", obj.GetName())
 		return nil
 	}
 }
@@ -206,8 +206,9 @@ func mergeTctxs(tctxs []*TraceContext) (retTctx *TraceContext, destCpid string, 
 		min = len(cg.roots[destCpid])
 	}
 	newAncCpids := cg.roots[destCpid][:min]
+	log.Println("EPPPPI-DEBUG= newAncCpids in mergeTctxs():", newAncCpids)
 	retTctx = newTraceContext(destCpid, newAncCpids)
-
+	log.Println("EPPPPI-DEBUG= retTctx in mergeTctxs():", retTctx)
 	return retTctx, destCpid, sourceCpids
 }
 
