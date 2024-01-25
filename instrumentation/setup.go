@@ -6,7 +6,8 @@ import (
 	"time"
 )
 
-func SetupTraceServerClient(endpoint string) func() {
+func SetupTraceServerClient(endpoint string, _numAncCpids int) func() {
+	numAncCpids = _numAncCpids
 	setupDoneCh, cancel := InitSender(endpoint, 240*time.Second)
 	go func() {
 		// receive in another goroutine to avoid blocking

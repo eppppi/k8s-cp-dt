@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	KOC_KEY       = "eppppi.github.io/koc"
-	NUM_ANC_CPIDS = 10
+	KOC_KEY = "eppppi.github.io/koc"
 )
+
+var numAncCpids = 10
 
 type TraceContext struct {
 	Cpid     string   `json:"cpid"`
@@ -37,8 +38,8 @@ func (tctx *TraceContext) validateTctx() error {
 	if tctx.Cpid == "" {
 		return fmt.Errorf("validation failed: cpid is empty string")
 	}
-	if len(tctx.AncCpids) > NUM_ANC_CPIDS {
-		return fmt.Errorf("validation failed: ancCpids (limit: %d) is too long %d", NUM_ANC_CPIDS, len(tctx.AncCpids))
+	if len(tctx.AncCpids) > numAncCpids {
+		return fmt.Errorf("validation failed: ancCpids (limit: %d) is too long %d", numAncCpids, len(tctx.AncCpids))
 	}
 	if containsString(tctx.AncCpids, tctx.Cpid) {
 		return fmt.Errorf("validation failed: cpid is included in ancCpids")
@@ -199,7 +200,7 @@ func mergeTctxs(tctxs []*TraceContext) (retTctx *TraceContext, destCpid string, 
 		cg.addTraceContext(&TraceContext{destCpid, sourceCpids})
 	}
 
-	min := NUM_ANC_CPIDS
+	min := numAncCpids
 	if len(cg.roots[destCpid]) < min {
 		min = len(cg.roots[destCpid])
 	}

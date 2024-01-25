@@ -112,7 +112,6 @@ func Start(ctx context.Context, cpid, service, objKind, objName, msg string) (co
 		}
 		// TODO (REFACTOR): use all of tctxs instead of only one
 		// TODO (REFACTOR) (idea): change Span to embrace multiple tctxs so that we don't need to merge tctxs here every time
-		log.Println("EPPPPI-DEBUG: tctxx[0]:", tctxs[0])
 		cpid = tctxs[0].GetCpid()
 	}
 
