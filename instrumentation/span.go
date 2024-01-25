@@ -137,7 +137,6 @@ func (s *Span) End() {
 	s.endTime = time.Now()
 	// push to channel
 	spanCh <- s.ToProtoSpan()
-	fmt.Println("span end")
 }
 
 // GenerateNewTctxAndSendMergelog generates a new trace context. if retTctx is nil, no mergelog is sent.
@@ -261,8 +260,6 @@ func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogp
 			_, err := client.PostSpans(context.Background(), req)
 			if err != nil {
 				log.Println(err)
-			} else {
-				log.Println("span sent")
 			}
 		case mergelog := <-mergelogCh:
 			req := &mergelogpb.MergelogRequest{
@@ -271,8 +268,6 @@ func runSender(doneCh <-chan struct{}, endpoint string, spanCh <-chan *mergelogp
 			_, err := client.PostMergelogs(context.Background(), req)
 			if err != nil {
 				log.Println(err)
-			} else {
-				log.Println("mergelog sent")
 			}
 		}
 	}

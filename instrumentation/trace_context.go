@@ -39,7 +39,8 @@ func (tctx *TraceContext) validateTctx() error {
 		return fmt.Errorf("validation failed: cpid is empty string")
 	}
 	if len(tctx.AncCpids) > numAncCpids {
-		return fmt.Errorf("validation failed: ancCpids (limit: %d) is too long %d", numAncCpids, len(tctx.AncCpids))
+		// return fmt.Errorf("validation failed: ancCpids (limit: %d) is too long %d", numAncCpids, len(tctx.AncCpids))
+		log.Printf("warning: ancCpids (limit: %d) is too long %d\n", numAncCpids, len(tctx.AncCpids))
 	}
 	if containsString(tctx.AncCpids, tctx.Cpid) {
 		return fmt.Errorf("validation failed: cpid is included in ancCpids")
